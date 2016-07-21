@@ -78,9 +78,13 @@ class Player(NPC):
     def handle_input(self, i, nmap, tmap):
         i = i.upper()
         if i == "N":
-            self.Move(0, 1, nmap, tmap)
-        elif i == "S":
             self.Move(0, -1, nmap, tmap)
+        elif i == "S":
+            self.Move(0, 1, nmap, tmap)
+        elif i == "E":
+            self.Move(-1, 0, nmap, tmap)
+        elif i == "W":
+            self.Move(1, 0, nmap, tmap)
     
         
 
@@ -153,7 +157,22 @@ class Map:
             temp = ""
         return displayable
 
-    
+    def ReInitializeNpc_map(self, i):
+        for y in range(0, self.height):
+            for x in range(0, self.width):
+                self.npc_map[y][x] = None
+
+        for w in i:
+            self.npc_map[w.y][w.x] = w
+            
+    def CreateVerticalLine(self, x, y, length):
+        for x in range(x, x+length):
+            self.tile_map[y][x] = None
+
+    def CreateHorizontalLine(self, x, y, length):
+        for y in range(y, y+length):
+            self.tile_map[y][x] = None
+
 
 if __name__ == "__main__":
     M = Map(20, 20)
@@ -162,10 +181,13 @@ if __name__ == "__main__":
     M.AddNPC(P)
     #M.AddTile(D, 3, 4)
     M.clear_space(5, 5, 5, 5)
-    
+    npc = [P]
 
+    M.CreateVerticalLine(10, 7, 5)
+    M.CreateHorizontalLine(7, 2, 3)
     running = False
     while running != True:
+        M.ReInitializeNpc_map(npc)
         dmap = M.Convert2Displayable(M.Generate_ascii())
         for u in dmap:
             print u
