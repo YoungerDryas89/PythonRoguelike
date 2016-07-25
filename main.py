@@ -160,7 +160,6 @@ class Map:
                 xpoint = ypoint[x]
                 if xpoint is not None:
                     ascii_map[y][x] = xpoint.ascii
-
                     
         return ascii_map
 
@@ -193,8 +192,21 @@ class Map:
         for y in range(y, y+length):
             self.tile_map[y][x] = None
 
-    def GenerateDungeon(self):
-
+    def GenNCmp(self, cmp1, range1, range2):
+        r1 = None
+        equal = False
+        while equal != True:
+            r1 = random.randint(range1, range2)
+            if r1 == cmp1:
+                continue
+            else:
+                equal = True
+                break
+        return r1
+        
+    def GenerateDungeon(self, P):
+        
+            
         #defined constants
         min_size_room = 5
         max_size_room = 25
@@ -210,6 +222,20 @@ class Map:
         # Create the first room or known as the spawn room
         self.clear_space(starting_x, starting_y, starting_width, starting_height)
 
+        #Set player position
+        pos_y = random.randint(starting_y, starting_y+starting_y)
+        pos_x = random.randint(starting_x, starting_x+starting_x)
+
+        P.y = pos_y
+        P.x = pos_x
+
+        self.AddNPC(P)
+        epos_y = self.GenNCmp(pos_y, starting_y, starting_y+starting_y)
+        epos_x = self.GenNCmp(pos_x, starting_x, starting_x+starting_x)
+
+        E = Exit()
+        self.AddTile(E, epos_x, epos_y)
+            
 
     def SquareCamera(self, ascii_map, P):
         px = P.x
@@ -227,16 +253,67 @@ class Map:
                 return_map[y][x] = xpoint
 
         return return_map
+
+class Game:
+    def __init__(self, h=None, w=None):
+        self.h = h
+        self.w = w
         
+        self.levels = []
+        self.current_level = 0
+        self.mainplayer = Player("@", 0, 0, 100) # Main player
+        self.exit_flag = 0 # 1 = Exit
+
+        
+        #Load up with a map
+        if h == None and w == None:
+            self.levels.append(Map(random.randint(20, 30), random.randint(20, 30)))
+        else:
+            self.levels.append(Map(self.w, self.h))
+        
+    def Run(self):
+        running = True
+        current = True
+
+        #vars
+        self.levels[self.current_level].GenerateDungeon(self.mainplayer)
+        while running != False:
+            current = True
+            while current != False:
+                self.levels[self.current_level].ReInitializeNpc_map(self.levels[self.current_level].npc)
+                ascii_map = self.levels[self.current_level].Convert2Displayable(self.levels[self.current_level].Generate_ascii())
+                for u in ascii_map:
+                    print u
+
+                i = raw_input(">>")
+                self.mainplayer.handle_input(i, self.levels[self.current_level].npc_map, self.levels[self.current_level].tile_map)
+                if i == "/Exit":
+                    self.exit_flag = 1
+
+                if self.exit_flag == 1:
+                    current == False
+                    break
+            if self.exit_flag == 1:
+                running = False
+                break
+            else:
+                self.current_level += 1
+            
+
+if __name__ == "__main__":
+    G = Game(20, 20)
+    G.Run()
+    
+"""       
 if __name__ == "__main__":
     M = Map(50, 50)
     #D = Door()
-    E = Exit()
-    M.AddTile(E, 17, 5)
+    #E = Exit()
+    #M.AddTile(E, 17, 5)
     P = Player("@", 8, 5, 100)
     M.AddNPC(P)
     #M.AddTile(D, 3, 4)
-    M.clear_space(5, 5, 30, 30)
+    M.GenerateDungeon(P)
     npc = [P]
 
     M.CreateVerticalLine(10, 7, 5)
@@ -255,3 +332,4 @@ if __name__ == "__main__":
         if running == True:
             break
 
+"""
